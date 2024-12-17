@@ -60,6 +60,27 @@ def get_languange(database_path, table_name, id):
         # Fechar conexão
         conn.close()
 
+def get_unique_languages(database_path, table_name):
+    try:
+        # Conectar ao banco
+        conn = sqlite3.connect(database_path)
+        cursor = conn.cursor()
+
+        # Executar consulta para pegar idiomas únicos
+        query = f"SELECT DISTINCT language FROM {table_name};"
+        cursor.execute(query)
+        languages = [row[0] for row in cursor.fetchall()]
+
+        return languages
+
+    except sqlite3.Error as e:
+        print(f"Erro ao acessar o banco de dados: {e}")
+        return []
+
+    finally:
+        if conn:
+            conn.close()
+
 # Função para inserir links no banco de dados
 def push_links_into_db(database_path, table_name, video_links):
     """
@@ -187,3 +208,53 @@ def get_data_by_video_id(database_path, table_name, video_id):
     finally:
         # Fechar a conexão
         conn.close()
+
+def push_data(database_path, table_name, table_collum, id, value, video_id):
+    try:
+        conn = sqlite3.connect(database_path)
+        cursor = conn.cursor()
+
+        cursor.execute(f'''
+        CREATE TABLE IF NOT EXISTS {table_name} (
+            id TEXT PRIMARY KEY NOT NULL,
+            {table_collum} TEXT NOT NULL,
+            VideoID TEXT NOT NULL,
+            FOREIGN KEY (VideoID) REFERENCES links (id)
+        )
+        ''')
+
+        cursor.execute(f"INSERT OR IGNORE INTO {table_name} (id, {table_collum}, VideoID) VALUES (?, ?, ?)", (id,value,video_id))
+
+    except sqlite3.Error as e:
+        conn.rollback()
+        print(f"Erro ao acessar o banco de dados: {e}")
+        return []
+    
+    finally:
+        conn.commit()
+        conn.close()
+
+def get_data(database_path, table_name, table_collum, video_id):
+    try:
+        # Conectar ao banco de dados
+        conn = sqlite3.connect(database_path)
+        cursor = conn.cursor()
+
+        # Consulta SQL para obter os dados
+        query = f"SELECT {table_collum} FROM {table_name} WHERE VideoID = ?"
+        cursor.execute(query, (video_id,))
+
+        # Buscar todos os resultados
+        results = cursor.fetchall()
+        return results
+
+    except sqlite3.Error as e:
+        print(f"Erro ao acessar o banco de dados: {e}")
+        return []
+
+    finally:
+        # Fechar a conexão
+        conn.close()
+
+#print(get_data('videos_data.db','transcribes','transcription','24YsiQewxeQ'))
+#print(get_data('videos_data.db','captions','caption','24YsiQewxeQ'))
