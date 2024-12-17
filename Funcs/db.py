@@ -234,6 +234,22 @@ def push_data(database_path, table_name, table_collum, id, value, video_id):
         conn.commit()
         conn.close()
 
+def update_data(database_path, table_name, table_collum, id, value):
+    try:
+        conn = sqlite3.connect(database_path)
+        cursor = conn.cursor()
+
+        cursor.execute(f"UPDATE {table_name} SET {table_collum} = ? WHERE id = ?", (value,id))
+
+    except sqlite3.Error as e:
+        conn.rollback()
+        print(f"Erro ao acessar o banco de dados: {e}")
+        return []
+    
+    finally:
+        conn.commit()
+        conn.close()
+
 def get_data(database_path, table_name, table_collum, video_id):
     try:
         # Conectar ao banco de dados
@@ -241,7 +257,7 @@ def get_data(database_path, table_name, table_collum, video_id):
         cursor = conn.cursor()
 
         # Consulta SQL para obter os dados
-        query = f"SELECT {table_collum} FROM {table_name} WHERE VideoID = ?"
+        query = f"SELECT id, {table_collum} FROM {table_name} WHERE VideoID = ?"
         cursor.execute(query, (video_id,))
 
         # Buscar todos os resultados
@@ -254,7 +270,20 @@ def get_data(database_path, table_name, table_collum, video_id):
 
     finally:
         # Fechar a conexão
+        conn.commit()
         conn.close()
 
-#print(get_data('videos_data.db','transcribes','transcription','24YsiQewxeQ'))
-#print(get_data('videos_data.db','captions','caption','24YsiQewxeQ'))
+def new_collumn(database_path, table_name, table_collum, tipo_dados):
+    try:
+        conn = sqlite3.connect(database_path)
+        cursor = conn.cursor()
+
+        cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {table_collum} {tipo_dados};")
+        print(f"Coluna '{table_collum}' adicionada com sucesso!")
+
+    except sqlite3.OperationalError as e:
+        print(f"Erro ao adicionar coluna: {e}")
+
+    finally:
+        conn.commit()
+        conn.close()
