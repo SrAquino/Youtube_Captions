@@ -66,3 +66,4 @@ def normalize_text(text, language_code):
 
     #print(normalized_text)
     return normalized_text
+
