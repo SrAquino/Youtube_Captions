@@ -1,53 +1,35 @@
-import re
-import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from nltk.stem import WordNetLemmatizer
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import MinMaxScaler
+import pandas as pd
+import numpy as np
 
-import sys
-import os
-# Adiciona a pasta raiz ao caminho de busca do Python
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Dados de entrada
+data = pd.DataFrame({
+    'id': [1, 2, 3],
+    'captions_vector': [np.random.rand(3) for _ in range(3)],
+    'transcriptions_vector': [np.random.rand(3) for _ in range(3)],
+    'likes': [100, 200, 300],
+    'views': [100, 200, 300]
+})
 
-# Função de normalização
-def normalize_text(text):
-    # Converter para letras minúsculas
-    text = text.lower()
-    # Remover pontuações e caracteres especiais
-    text = re.sub(r'[^\w\s]', '', text)
-    # Tokenizar (dividir o texto em palavras)
-    words = word_tokenize(text)
-    # Remover stopwords (em português, mas pode mudar para inglês)
-    stop_words = set(stopwords.words('portuguese'))
-    words = [word for word in words if word not in stop_words]
-    # Lematizar (reduzir às formas básicas)
-    lemmatizer = WordNetLemmatizer()
-    words = [lemmatizer.lemmatize(word) for word in words]
-    # Recriar o texto normalizado
-    normalized_text = ' '.join(words)
-    return normalized_text
+# 1. Clusterizar Captions
+captions_vectors = np.array(data['captions_vector'].tolist())
+kmeans_captions = KMeans(n_clusters=3, random_state=42)
+data['caption_cluster'] = kmeans_captions.fit_predict(captions_vectors)
 
-def get_stopwords_for_language(language_code):
-    # Pegar a parte inicial do idioma (e.g., 'en' de 'en-US')
-    lang = language_code.split('-')[0]
-    try:
-        #return set(stopwords.words(lang))
-        print(f'tudo ok com {lang}')
-    except OSError:
-        print(f"Stop words para o idioma '{lang}' não estão disponíveis.")
-        #return set()  # Retorna conjunto vazio caso o idioma não esteja disponível
+# 2. Clusterizar Transcrições
+transcriptions_vectors = np.array(data['transcriptions_vector'].tolist())
+kmeans_transcriptions = KMeans(n_clusters=3, random_state=42)
+data['transcription_cluster'] = kmeans_transcriptions.fit_predict(transcriptions_vectors)
 
-'''
-# Exemplo de uso
-example_text = "A Ciência e a Tecnologia estão mudando o mundo, mas é importante entender as suas limitações."
-normalized = normalize_text(example_text)
-print("Texto Original:", example_text)
-print("Texto Normalizado:", normalized)
-'''
+# 3. Clusterizar Engajamento
+data['engagement'] = data['likes'] / data['views']
+scaler = MinMaxScaler()
+engagement_scaled = scaler.fit_transform(data[['engagement']])
+kmeans_engagement = KMeans(n_clusters=3, random_state=42)
+data['engagement_cluster'] = kmeans_engagement.fit_predict(engagement_scaled)
 
-from Funcs.db import get_unique_languages
+# 4. Combinação dos clusters
+data['combined_cluster'] = data[['caption_cluster', 'transcription_cluster', 'engagement_cluster']].apply(tuple, axis=1)
 
-uniq = get_unique_languages('videos_data.db','links')
-for u in uniq:
-    print(u)
-    get_stopwords_for_language(u)
+print(data)
