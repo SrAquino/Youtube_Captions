@@ -1,2 +1,13 @@
 .env
 Videos
+__pycache__
+.venv
+
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz

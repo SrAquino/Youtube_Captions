@@ -6,6 +6,15 @@ O que que esse programa faz?
 - Faz screenshot a cada 10seg
 - Gera uma descrição de cada screenshot
 - Salva tudo no BD SQLite
+- Normaliza os textos
+- Vetoriza os textos
+- Clusteriza as bases
+
+(caso instancie dados no git que agora estão no .gitignore: 
+> - git rm -r --cached . 
+> - git add .
+> - git commit -m "Atualiza o rastreamento de arquivos com base no .gitignore"
+)
 
 >> Recomendo que execute cada célula separadamente, pois como há thread, eventualmente a próxima célula inicia sem a ultima ter terminado, o que pode gerar erros
 
